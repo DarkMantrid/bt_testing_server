@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simplifier Manager Web tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta charset="UTF-8" />
+  </head>
+
+  <body>
+    <div class="header">
+      <h2>Safety<br>Simplifier</h2>
+      <div class="logo">
+        <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
+      </div>
+    </div>
+    <table class="card-table">
+      <tr>
+        <td class="card">
+          <p>
+            <button id="connectBleButton" class="connectButton">
+              Connect to Device
+            </button>
+            <button id="disconnectBleButton" class="disconnectButton">
+              Disconnect Device
+            </button>
+          </p>
+          <p class="gray-label">
+            BLE state:
+            <strong
+              ><span id="bleState" style="color: #d13a30"
+                >Ready to connect</span
+              ></strong
+            >
+          </p>
+        </td>
+        <td class="card info-card" style="display: none">
+          <h3>General information</h3>
+          <p class="infoReading"><span id="infoContainer"></span></p>
+        </td>
+        <td class="card status-card" style="display: none">
+          <h4>Status</h4>
+          <p class="statusReading"><span id="statusContainer"></span></p>
+          <p class="gray-label" id="timestamp"></p>
+        </td>
+      </tr>
+    </table>
+    <div class="content">
+      <div class="chrome-alternative" style="display: none">
+        <p><b>Web Bluetooth is not supported in Mozilla Firefox. </b></p>
+        <p>
+          To use this service, please click this button to copy the URL:
+          <span id="chromeUrl" style="display: none"
+            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
+          ><button onclick="copyUrl()" class="copyButton">Copy</button>
+        </p>
+        <p>
+          Once copied open Google chrome and paste the URL into the search bar
+        </p>
+      </div>
+      <div class="safari-alternative" style="display: none">
+        <p><b>Web Bluetooth is not supported in Safari. </b></p>
+        <p>
+          To use this service, please click this button to copy the URL:
+          <span id="safariUrl" style="display: none"
+            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
+          ><button onclick="copySafariUrl()" class="copyButton">Copy</button>
+        </p>
+        <p>
+          Once copied, open Google Chrome and paste the URL into the address bar
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function copyUrl() {
+        var urlSpan = document.getElementById("chromeUrl");
+        var tempInput = document.createElement("input");
+        tempInput.value = urlSpan.textContent;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        alert("URL copied to clipboard");
+      }
+
+      function copySafariUrl() {
+        var urlSpan = document.getElementById("safariUrl");
+        var tempInput = document.createElement("input");
+        tempInput.value = urlSpan.textContent;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        alert("URL copied to clipboard");
+      }
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // DOM Elements
+        const connectButton = document.getElementById("connectBleButton");
+        const disconnectButton = document.getElementById("disconnectBleButton");
+        const bleStateContainer = document.getElementById("bleState");
+        const timestampContainer = document.getElementById("timestamp");
+        const statusContainer = document.getElementById("statusContainer");
+        const infoContainer = document.getElementById("infoContainer");
+
+        // Bluetooth Variables
+        let bleServer;
+        let statusCharacteristicFound;
+        let intervalId;
+        let retryAttempts = 0;
+        let connectionFailed = false; // Flag to track connection failure
+        const maxRetryAttempts = 3; // Maximum number of retry attempts
+        let selectedDevice = null; // To store the selected device
+        let initialConnectionEstablished = false; // Flag to track initial connection
+        let connectButtonDisabled = false; // Flag to track if the connect button is disabled
+
+        // Event Listeners
+        connectButton.addEventListener("click", handleConnectButtonClick);
+        disconnectButton.addEventListener("click", disconnectDevice);
+
+        // Bluetooth Constants
+        const deviceName = "ESP32-C3";
+        const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
+        const statusCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
+
+        // Event Handlers
+        function handleConnectButtonClick(event) {
+          if (!bleServer) {
+            if (isWebBluetoothEnabled()) {
+              connectToDevice(selectedDevice); // Pass selected device to connectToDevice
+            }
+          }
+        }
+
+        function disconnectDevice() {
+          if (bleServer && bleServer.connected) {
+            if (statusCharacteristicFound) {
+              // Stop notifications on the characteristic
+              statusCharacteristicFound
+                .stopNotifications()
+                .then(() => {
+                  // Disconnect from the GATT server
+                  return bleServer.disconnect();
+                })
+                .then(() => {
+                  // Update UI and reset variables
+                  updateBleState("Preparing...", "#ff7a00");
+                  clearInterval(intervalId);
+                  hideInfoCard();
+                  hideStatusCard();
+                  bleServer = null;
+                  statusCharacteristicFound = null;
+                  intervalId = null;
+                  retryAttempts = 0;
+                  connectionFailed = false;
+                  selectedDevice = null;
+
+                  // Disable connect button for 2.5 seconds after disconnecting to prevent bugs.
+                  connectButton.disabled = true;
+                  setTimeout(() => {
+                    connectButton.disabled = false;
+                    updateBleState("Ready to connect", "#d13a30");
+                  }, 2500);
+                })
+                .catch((error) => console.error("An error occurred:", error));
+            }
+          } else {
+            console.error("Bluetooth is not connected.");
+            window.alert("Bluetooth is not connected.");
+          }
+        }
+
+        // Bluetooth Functions
+        function isWebBluetoothEnabled() {
+          if (!navigator.bluetooth) {
+            console.log("Web Bluetooth API is not available in this browser!");
+            updateBleState("Web Bluetooth API is not available", "#d13a30");
+            return false;
+          }
+          console.log("Web Bluetooth API supported in this browser.");
+          return true; // Remove connectToDevice call from here
+        }
+
+        function connectToDevice(device) {
+          // Check if the device is provided
+          if (!device) {
+            console.log("Initializing Bluetooth...");
+            // Request device selection
+            navigator.bluetooth
+              .requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [bleService],
+              })
+              .then((selectedDevice) => {
+                console.log("Device Selected:", selectedDevice.name);
+                connectToDevice(selectedDevice); // Call connectToDevice with selected device
+              })
+              .catch((error) => {
+                console.error("Failed to select device:", error);
+              });
+            return; // Exit function if device selection is pending
+          }
+
+          console.log("Connecting to selected device...");
+          selectedDevice = device; // Store the selected device
+
+          // Event listener for disconnection
+          selectedDevice.addEventListener(
+            "gattserverdisconnected",
+            onDisconnected
+          );
+
+          // Attempt to connect to the GATT server
+          selectedDevice.gatt
+            .connect()
+            .then((gattServer) => {
+              bleServer = gattServer;
+              connectionFailed = false; // Reset connectionFailed flag
+              initialConnectionEstablished = true; // Set initial connection flag
+              console.log("Connected to GATT Server");
+              updateBleState(
+                `Connected to ${selectedDevice.name}`,
+                "#24af37",
+                true,
+                selectedDevice.name
+              ); // Update device connected message
+              retryAttempts = 0; // Reset retryAttempts on successful connection
+              return bleServer.getPrimaryService(bleService);
+            })
+            .then((service) => {
+              console.log("Service discovered:", service.uuid);
+              return Promise.all([
+                service
+                  .getCharacteristic(statusCharacteristic)
+                  .then((characteristic) => {
+                    console.log(
+                      "Status Characteristic discovered:",
+                      characteristic.uuid
+                    );
+                    statusCharacteristicFound = characteristic;
+                    characteristic.addEventListener(
+                      "characteristicvaluechanged",
+                      handleCharacteristicChangeDebounced
+                    );
+                    return characteristic.startNotifications();
+                  }),
+              ]);
+            })
+            .then(() => {
+              intervalId = setInterval(updateTimestamp, 1000);
+              showInfoCard();
+              showStatusCard();
+              return statusCharacteristicFound.readValue(); // Use statusCharacteristicFound here
+            })
+            .catch((error) => {
+              console.error("Error: ", error);
+              if (error instanceof DOMException) {
+                console.error("DOMException:", error.message);
+              }
+              connectionFailed = true; // Set connectionFailed flag
+              if (retryAttempts < maxRetryAttempts) {
+                console.log("Retrying...");
+                retryAttempts++;
+                setTimeout(connectToDevice, 1000, selectedDevice); // Retry after 3 seconds with selected device
+              } else {
+                console.error("Maximum retry attempts reached.");
+                retryAttempts = 0;
+              }
+            });
+        }
+
+        function onDisconnected(event) {
+          console.log("Device disconnected event triggered.");
+          try {
+            console.log("Device Disconnected:", event.target.device.name);
+          } catch (error) {
+            console.log("Device Disconnected, Restarting Advertise.");
+          }
+          clearInterval(intervalId);
+          hideInfoCard();
+          hideStatusCard();
+          retryAttempts = 0;
+          bleServer = null;
+          statusCharacteristicFound = null;
+          selectedDevice = null; // Clear selected device on disconnect
+          initialConnectionEstablished = false; // Reset initial connection flag
+          setTimeout(function () {
+            console.log("Ready to connect");
+          }, 2500);
+        }
+
+        // Function to debounce characteristic value changes
+        function handleCharacteristicChangeDebounced(event) {
+          if (initialConnectionEstablished) {
+            debounce(handleCharacteristicChange, 500)(event);
+          } else {
+            handleCharacteristicChange(event);
+          }
+        }
+
+        function debounce(func, delay) {
+          let timeoutId;
+          return function () {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              func.apply(this, arguments);
+            }, delay);
+          };
+        }
+
+        function handleCharacteristicChange(event) {
+          if (event.target instanceof BluetoothRemoteGATTCharacteristic) {
+            const newValueReceived = new TextDecoder().decode(
+              event.target.value
+            );
+
+            try {
+              console.log(newValueReceived);
+              if (event.target.uuid === statusCharacteristic) {
+                statusContainer.style.whiteSpace = "pre-line";
+                infoContainer.style.whiteSpace = "pre-line";
+              }
+            } catch (error) {
+              console.error(
+                "Error parsing or handling characteristic change:",
+                error
+              );
+            }
+          } else {
+            console.log("Unknown event type:", event);
+          }
+        }
+
+        // UI Functions
+        function updateBleState(message, color, connected, deviceName) {
+          bleStateContainer.innerHTML = message;
+          bleStateContainer.style.color = color;
+          if (connected !== undefined) {
+            bleStateContainer.textContent = connected
+              ? `Connected to ${deviceName}`
+              : "Disconnected";
+          }
+        }
+
+        function showInfoCard() {
+          const statusCard = document.querySelector(".info-card");
+          if (statusCard) {
+            statusCard.style.display = "block";
+          }
+        }
+
+        function hideInfoCard() {
+          const statusCard = document.querySelector(".info-card");
+          if (statusCard) {
+            statusCard.style.display = "none";
+          }
+        }
+
+        function showStatusCard() {
+          const statusCard = document.querySelector(".status-card");
+          if (statusCard) {
+            statusCard.style.display = "block";
+          }
+        }
+
+        function hideStatusCard() {
+          const statusCard = document.querySelector(".status-card");
+          if (statusCard) {
+            statusCard.style.display = "none";
+          }
+        }
+
+        // Update timestamp every second
+        function updateTimestamp() {
+          const timestamp = getDateTime();
+          timestampContainer.textContent = `Last reading: ${timestamp}`;
+        }
+
+        // Utility Functions
+        function getDateTime() {
+          const currentdate = new Date();
+          const day = ("00" + currentdate.getDate()).slice(-2);
+          const month = ("00" + (currentdate.getMonth() + 1)).slice(-2);
+          const year = currentdate.getFullYear();
+          const hours = ("00" + currentdate.getHours()).slice(-2);
+          const minutes = ("00" + currentdate.getMinutes()).slice(-2);
+          const seconds = ("00" + currentdate.getSeconds()).slice(-2);
+          return `${day}/${month}/${year} at ${hours}:${minutes}:${seconds}`;
+        }
+      });
+    </script>
+  </body>
+</html>
