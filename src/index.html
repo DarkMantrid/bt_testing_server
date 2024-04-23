@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Simplifier Manager Web tool</title>
+    <title>Simplifier BT testing offline</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="favicon.ico" />
     <link rel="stylesheet" type="text/css" href="style.css" />
     <meta charset="UTF-8" />
   </head>
 
   <body>
     <div class="header">
-      <h2>Safety<br>Simplifier</h2>
-      <div class="logo">
-        <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
-      </div>
+      <h2>Harald Blåtand vs Orpheus Gultand<br />2 - 2</h2>
     </div>
     <table class="card-table">
       <tr>
@@ -36,66 +32,17 @@
           </p>
         </td>
         <td class="card info-card" style="display: none">
-          <h3>General information</h3>
-          <p class="infoReading"><span id="infoContainer"></span></p>
+          <h3>Write Value</h3>
+          <input type="text" id="writeValueInput" />
+          <button id="writeValueButton">Write</button>
         </td>
         <td class="card status-card" style="display: none">
-          <h4>Status</h4>
+          <h4>Read Value</h4>
           <p class="statusReading"><span id="statusContainer"></span></p>
-          <p class="gray-label" id="timestamp"></p>
+          <p>Received Value: <span id="writtenValueContainer"></span></p>
         </td>
       </tr>
     </table>
-    <div class="content">
-      <div class="chrome-alternative" style="display: none">
-        <p><b>Web Bluetooth is not supported in Mozilla Firefox. </b></p>
-        <p>
-          To use this service, please click this button to copy the URL:
-          <span id="chromeUrl" style="display: none"
-            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
-          ><button onclick="copyUrl()" class="copyButton">Copy</button>
-        </p>
-        <p>
-          Once copied open Google chrome and paste the URL into the search bar
-        </p>
-      </div>
-      <div class="safari-alternative" style="display: none">
-        <p><b>Web Bluetooth is not supported in Safari. </b></p>
-        <p>
-          To use this service, please click this button to copy the URL:
-          <span id="safariUrl" style="display: none"
-            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
-          ><button onclick="copySafariUrl()" class="copyButton">Copy</button>
-        </p>
-        <p>
-          Once copied, open Google Chrome and paste the URL into the address bar
-        </p>
-      </div>
-    </div>
-
-    <script>
-      function copyUrl() {
-        var urlSpan = document.getElementById("chromeUrl");
-        var tempInput = document.createElement("input");
-        tempInput.value = urlSpan.textContent;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("URL copied to clipboard");
-      }
-
-      function copySafariUrl() {
-        var urlSpan = document.getElementById("safariUrl");
-        var tempInput = document.createElement("input");
-        tempInput.value = urlSpan.textContent;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("URL copied to clipboard");
-      }
-    </script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -103,13 +50,14 @@
         const connectButton = document.getElementById("connectBleButton");
         const disconnectButton = document.getElementById("disconnectBleButton");
         const bleStateContainer = document.getElementById("bleState");
-        const timestampContainer = document.getElementById("timestamp");
         const statusContainer = document.getElementById("statusContainer");
-        const infoContainer = document.getElementById("infoContainer");
+        const writeValueInput = document.getElementById("writeValueInput");
+        const writeValueButton = document.getElementById("writeValueButton");
 
         // Bluetooth Variables
         let bleServer;
-        let statusCharacteristicFound;
+        let readCharacteristicFound;
+        let writeCharacteristicFound;
         let intervalId;
         let retryAttempts = 0;
         let connectionFailed = false; // Flag to track connection failure
@@ -121,11 +69,13 @@
         // Event Listeners
         connectButton.addEventListener("click", handleConnectButtonClick);
         disconnectButton.addEventListener("click", disconnectDevice);
+        writeValueButton.addEventListener("click", handleWriteValueButtonClick);
 
         // Bluetooth Constants
         const deviceName = "esp_tester";
         const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
-        const statusCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
+        const writeCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
+        const readCharacteristic = "960df2dd-b2c9-4722-9fad-b18f64a945d9";
 
         // Event Handlers
         function handleConnectButtonClick(event) {
@@ -138,9 +88,9 @@
 
         function disconnectDevice() {
           if (bleServer && bleServer.connected) {
-            if (statusCharacteristicFound) {
+            if (readCharacteristic) {
               // Stop notifications on the characteristic
-              statusCharacteristicFound
+              readCharacteristicFound
                 .stopNotifications()
                 .then(() => {
                   // Disconnect from the GATT server
@@ -150,14 +100,7 @@
                   // Update UI and reset variables
                   updateBleState("Preparing...", "#ff7a00");
                   clearInterval(intervalId);
-                  hideInfoCard();
-                  hideStatusCard();
-                  bleServer = null;
-                  statusCharacteristicFound = null;
-                  intervalId = null;
-                  retryAttempts = 0;
-                  connectionFailed = false;
-                  selectedDevice = null;
+                  resetValues();
 
                   // Disable connect button for 2.5 seconds after disconnecting to prevent bugs.
                   connectButton.disabled = true;
@@ -171,6 +114,25 @@
           } else {
             console.error("Bluetooth is not connected.");
             window.alert("Bluetooth is not connected.");
+          }
+        }
+
+        function handleWriteValueButtonClick() {
+          if (bleServer && bleServer.connected && writeCharacteristicFound) {
+            const value = writeValueInput.value;
+            console.log(`Writing value to UUID: ${writeCharacteristic}`);
+            writeValueToCharacteristic(writeCharacteristicFound, value).catch(
+              (error) => {
+                console.error("Error writing value:", error);
+              }
+            );
+          } else {
+            console.error(
+              "Bluetooth is not connected or characteristic not found."
+            );
+            window.alert(
+              "Bluetooth is not connected or characteristic not found."
+            );
           }
         }
 
@@ -235,26 +197,37 @@
               console.log("Service discovered:", service.uuid);
               return Promise.all([
                 service
-                  .getCharacteristic(statusCharacteristic)
+                  .getCharacteristic(readCharacteristic)
                   .then((characteristic) => {
                     console.log(
-                      "Status Characteristic discovered:",
+                      "Read Characteristic discovered:",
                       characteristic.uuid
                     );
-                    statusCharacteristicFound = characteristic;
+                    readCharacteristicFound = characteristic;
                     characteristic.addEventListener(
                       "characteristicvaluechanged",
-                      handleCharacteristicChangeDebounced
+                      handleCharacteristicChange
+                    );
+                    console.log(
+                      `Starting notifications for UUID: ${readCharacteristic}`
                     );
                     return characteristic.startNotifications();
+                  }),
+                service
+                  .getCharacteristic(writeCharacteristic)
+                  .then((characteristic) => {
+                    console.log(
+                      "Write Characteristic discovered:",
+                      characteristic.uuid
+                    );
+                    writeCharacteristicFound = characteristic;
                   }),
               ]);
             })
             .then(() => {
-              intervalId = setInterval(updateTimestamp, 1000);
               showInfoCard();
               showStatusCard();
-              return statusCharacteristicFound.readValue(); // Use statusCharacteristicFound here
+              return readCharacteristicFound.readValue();
             })
             .catch((error) => {
               console.error("Error: ", error);
@@ -265,7 +238,7 @@
               if (retryAttempts < maxRetryAttempts) {
                 console.log("Retrying...");
                 retryAttempts++;
-                setTimeout(connectToDevice, 1000, selectedDevice); // Retry after 3 seconds with selected device
+                setTimeout(connectToDevice, 1000, selectedDevice);
               } else {
                 console.error("Maximum retry attempts reached.");
                 retryAttempts = 0;
@@ -281,13 +254,7 @@
             console.log("Device Disconnected, Restarting Advertise.");
           }
           clearInterval(intervalId);
-          hideInfoCard();
-          hideStatusCard();
-          retryAttempts = 0;
-          bleServer = null;
-          statusCharacteristicFound = null;
-          selectedDevice = null; // Clear selected device on disconnect
-          initialConnectionEstablished = false; // Reset initial connection flag
+          resetValues();
           setTimeout(function () {
             console.log("Ready to connect");
           }, 2500);
@@ -312,30 +279,41 @@
           };
         }
 
-        function handleCharacteristicChange(event) {
+        async function handleCharacteristicChange(event) {
           if (event.target instanceof BluetoothRemoteGATTCharacteristic) {
-            const newValueReceived = new TextDecoder().decode(
-              event.target.value
+            console.log(
+              "Raw value:",
+              new Uint8Array(event.target.value.buffer)
             );
+            let stringValue = new TextDecoder().decode(
+              event.target.value.buffer
+            );
+            console.log("String value:", stringValue);
 
-            try {
-              console.log(newValueReceived);
-              if (event.target.uuid === statusCharacteristic) {
-                statusContainer.style.whiteSpace = "pre-line";
-                infoContainer.style.whiteSpace = "pre-line";
-              }
-            } catch (error) {
-              console.error(
-                "Error parsing or handling characteristic change:",
-                error
-              );
+            // Only update the #writtenValueContainer element if the string value is not empty
+            if (stringValue.trim() !== "") {
+              console.log(`Received Value: ${stringValue}`);
+              console.log(`Received Value from UUID: ${event.target.uuid}`);
+              document.getElementById("writtenValueContainer").textContent =
+                stringValue;
             }
-          } else {
-            console.log("Unknown event type:", event);
           }
         }
 
-        // UI Functions
+        function writeValueToCharacteristic(characteristic, value) {
+          // Convert the value to an ArrayBuffer
+          const encoder = new TextEncoder();
+          const valueBuffer = encoder.encode(value);
+
+          // Write the value to the characteristic
+          return characteristic.writeValue(valueBuffer).then(() => {
+            console.log(`Wrote value to UUID: ${characteristic.uuid}`);
+            // Update the #writtenValueContainer element with the written value
+            document.getElementById("writtenValueContainer").textContent =
+              value;
+          });
+        }
+
         function updateBleState(message, color, connected, deviceName) {
           bleStateContainer.innerHTML = message;
           bleStateContainer.style.color = color;
@@ -374,22 +352,24 @@
           }
         }
 
-        // Update timestamp every second
-        function updateTimestamp() {
-          const timestamp = getDateTime();
-          timestampContainer.textContent = `Last reading: ${timestamp}`;
-        }
+        function resetValues() {
+          // Bluetooth Variables
+          bleServer = null;
+          readCharacteristicFound = null;
+          writeCharacteristicFound = null; // Reset writeCharacteristicFound
+          intervalId = null;
+          retryAttempts = 0;
+          connectionFailed = false; // Flag to track connection failure
+          selectedDevice = null; // To store the selected device
+          initialConnectionEstablished = false; // Flag to track initial connection
+          connectButtonDisabled = false; // Flag to track if the connect button is disabled
 
-        // Utility Functions
-        function getDateTime() {
-          const currentdate = new Date();
-          const day = ("00" + currentdate.getDate()).slice(-2);
-          const month = ("00" + (currentdate.getMonth() + 1)).slice(-2);
-          const year = currentdate.getFullYear();
-          const hours = ("00" + currentdate.getHours()).slice(-2);
-          const minutes = ("00" + currentdate.getMinutes()).slice(-2);
-          const seconds = ("00" + currentdate.getSeconds()).slice(-2);
-          return `${day}/${month}/${year} at ${hours}:${minutes}:${seconds}`;
+          // Reset UI
+          hideInfoCard();
+          hideStatusCard();
+          document.getElementById("statusContainer").textContent = "";
+          document.getElementById("writeValueInput").value = "";
+          document.getElementById("writtenValueContainer").textContent = "";
         }
       });
     </script>
