@@ -72,7 +72,7 @@
         writeValueButton.addEventListener("click", handleWriteValueButtonClick);
 
         // Bluetooth Constants
-        const deviceName = "esp_tester";
+        const deviceName = "ESP_tester";
         const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
         const writeCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
         const readCharacteristic = "960df2dd-b2c9-4722-9fad-b18f64a945d9";
@@ -305,8 +305,11 @@
           const encoder = new TextEncoder();
           const valueBuffer = encoder.encode(value);
 
+          // Create a new Uint8Array from the valueBuffer
+          const newValueBuffer = new Uint8Array(valueBuffer);
+
           // Write the value to the characteristic
-          return characteristic.writeValue(valueBuffer).then(() => {
+          return characteristic.writeValue(newValueBuffer).then(() => {
             console.log(`Wrote value to UUID: ${characteristic.uuid}`);
             // Update the #writtenValueContainer element with the written value
             document.getElementById("writtenValueContainer").textContent =
@@ -355,8 +358,8 @@
         function resetValues() {
           // Bluetooth Variables
           bleServer = null;
-          readCharacteristicFound = null;
-          writeCharacteristicFound = null; // Reset writeCharacteristicFound
+          readCharacteristicFound = "0";
+          writeCharacteristicFound = "0"; // Reset writeCharacteristicFound
           intervalId = null;
           retryAttempts = 0;
           connectionFailed = false; // Flag to track connection failure
