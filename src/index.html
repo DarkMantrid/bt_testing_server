@@ -9,7 +9,7 @@
 
   <body>
     <div class="header">
-      <h2>Harald Blåtand vs Orpheus Gultand<br />2 - 2</h2>
+      <h2>Harald Blåtand vs Orpheus Gultand<br />Winner: Orpheus!</h2>
     </div>
     <table class="card-table">
       <tr>
@@ -119,13 +119,20 @@
 
         function handleWriteValueButtonClick() {
           if (bleServer && bleServer.connected && writeCharacteristicFound) {
-            const value = writeValueInput.value;
-            console.log(`Writing value to UUID: ${writeCharacteristic}`);
-            writeValueToCharacteristic(writeCharacteristicFound, value).catch(
-              (error) => {
-                console.error("Error writing value:", error);
-              }
-            );
+            // Check if the write characteristic has write property
+            if (writeCharacteristicFound.properties.write) {
+              const value = writeValueInput.value;
+              console.log(`Writing value to UUID: ${writeCharacteristic}`);
+              writeValueToCharacteristic(writeCharacteristicFound, value).catch(
+                (error) => {
+                  console.error("Error writing value:", error);
+                }
+              );
+            } else {
+              console.log(
+                "Write permission not available for write characteristic."
+              );
+            }
           } else {
             console.error(
               "Bluetooth is not connected or characteristic not found."
@@ -227,7 +234,14 @@
             .then(() => {
               showInfoCard();
               showStatusCard();
-              return readCharacteristicFound.readValue();
+              // Check if the write characteristic has read property
+              if (writeCharacteristicFound.properties.read) {
+                return writeCharacteristicFound.readValue();
+              } else {
+                console.log(
+                  "Read permission not available for write characteristic."
+                );
+              }
             })
             .catch((error) => {
               console.error("Error: ", error);
