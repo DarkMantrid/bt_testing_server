@@ -309,12 +309,17 @@
           const newValueBuffer = new Uint8Array(valueBuffer);
 
           // Write the value to the characteristic
-          return characteristic.writeValue(newValueBuffer).then(() => {
-            console.log(`Wrote value to UUID: ${characteristic.uuid}`);
-            // Update the #writtenValueContainer element with the written value
-            document.getElementById("writtenValueContainer").textContent =
-              value;
-          });
+          return characteristic
+            .writeValue(newValueBuffer)
+            .then(() => {
+              console.log(`Wrote value to UUID: ${characteristic.uuid}`);
+              // Update the #writtenValueContainer element with the written value
+              document.getElementById("writtenValueContainer").textContent =
+                value;
+            })
+            .catch((error) => {
+              console.error("Error writing value:", error);
+            });
         }
 
         function updateBleState(message, color, connected, deviceName) {
