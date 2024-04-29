@@ -10,7 +10,7 @@
 
   <body>
     <div class="header">
-      <h2>Safety<br />Simplifier</h2>
+      <h2>Safety<br>Simplifier</h2>
       <div class="logo">
         <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
       </div>
@@ -109,8 +109,7 @@
 
         // Bluetooth Variables
         let bleServer;
-        let writeCharacteristic;
-        let readCharacteristic;
+        let readCharacteristicFound;
         let intervalId;
         let retryAttempts = 0;
         let connectionFailed = false; // Flag to track connection failure
@@ -126,8 +125,7 @@
         // Bluetooth Constants
         const deviceName = "ESP32-C3";
         const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
-        const writeCharacteristicUuid = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
-        const readCharacteristicUuid = "960df2dd-b2c9-4722-9fad-b18f64a945d9";
+        const readCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
 
         // Event Handlers
         function handleConnectButtonClick(event) {
@@ -140,9 +138,9 @@
 
         function disconnectDevice() {
           if (bleServer && bleServer.connected) {
-            if (readCharacteristic) {
+            if (readCharacteristicFound) {
               // Stop notifications on the characteristic
-              readCharacteristic
+              readCharacteristicFound
                 .stopNotifications()
                 .then(() => {
                   // Disconnect from the GATT server
@@ -155,7 +153,7 @@
                   hideInfoCard();
                   hideStatusCard();
                   bleServer = null;
-                  readCharacteristic = null;
+                  readCharacteristicFound = null;
                   intervalId = null;
                   retryAttempts = 0;
                   connectionFailed = false;
@@ -234,43 +232,29 @@
               return bleServer.getPrimaryService(bleService);
             })
             .then((service) => {
-              // Get the write and read characteristics
-              const writeCharacteristicPromise = service.getCharacteristic(
-                writeCharacteristicUuid
-              );
-              const readCharacteristicPromise = service.getCharacteristic(
-                readCharacteristicUuid
-              );
-
+              console.log("Service discovered:", service.uuid);
               return Promise.all([
-                writeCharacteristicPromise,
-                readCharacteristicPromise,
+                service
+                  .getCharacteristic(readCharacteristic)
+                  .then((characteristic) => {
+                    console.log(
+                      "Read Characteristic discovered:",
+                      characteristic.uuid
+                    );
+                    readCharacteristicFound = characteristic;
+                    characteristic.addEventListener(
+                      "characteristicvaluechanged",
+                      handleCharacteristicChangeDebounced
+                    );
+                    return characteristic.startNotifications();
+                  }),
               ]);
             })
-            .then(([writeChar, readChar]) => {
-              writeCharacteristic = writeChar;
-              readCharacteristic = readChar;
-
-              console.log(
-                "Write Characteristic discovered:",
-                writeCharacteristic.uuid
-              );
-              console.log(
-                "Read Characteristic discovered:",
-                readCharacteristic.uuid
-              );
+            .then(() => {
               intervalId = setInterval(updateTimestamp, 1000);
               showInfoCard();
               showStatusCard();
-
-              // Check if the device is connected and the characteristic supports reading
-              if (bleServer.connected && readCharacteristic.properties.read) {
-                return readCharacteristic.readValue();
-              } else {
-                console.error(
-                  "Cannot read value: Device is not connected or characteristic does not support reading."
-                );
-              }
+              return readCharacteristicFound.readValue(); // Use readCharacteristicFound here
             })
             .catch((error) => {
               console.error("Error: ", error);
@@ -301,7 +285,7 @@
           hideStatusCard();
           retryAttempts = 0;
           bleServer = null;
-          readCharacteristic = null;
+          readCharacteristicFound = null;
           selectedDevice = null; // Clear selected device on disconnect
           initialConnectionEstablished = false; // Reset initial connection flag
           setTimeout(function () {
@@ -328,61 +312,32 @@
           };
         }
 
-        function writeToCharacteristic(data) {
-          if (!writeCharacteristic) {
-            console.error("Write characteristic not found");
-            return;
-          }
-
-          const encoder = new TextEncoder();
-          const value = encoder.encode(data);
-          writeCharacteristic.writeValue(value);
-        }
-
-        // Add a function to read data from the read characteristic
-        function readFromCharacteristic() {
-          if (!readCharacteristic) {
-            console.error("Read characteristic not found");
-            return;
-          }
-
-          readCharacteristic.readValue().then((value) => {
-            const decoder = new TextDecoder();
-            const data = decoder.decode(value);
-            console.log("Read data:", data);
-          });
-        }
-
         function handleCharacteristicChange(event) {
-          let newValueReceived;
+          if (event.target instanceof BluetoothRemoteGATTCharacteristic) {
+            const newValueReceived = new TextDecoder().decode(
+              event.target.value
+            );
 
-          if (event.target.uuid === readCharacteristicUuid) {
-            // Handle read characteristic change
-            newValueReceived = new TextDecoder().decode(event.target.value);
-            console.log("Read data:", newValueReceived);
-          } else if (event.target.uuid === writeCharacteristicUuid) {
-            // Handle write characteristic change
-            newValueReceived = new TextDecoder().decode(event.target.value);
-            console.log("Write data:", newValueReceived);
+            try {
+              console.log(newValueReceived);
+              const obj = JSON.parse(newValueReceived);
+              if (event.target.uuid === readCharacteristic) {
+                statusContainer.style.whiteSpace = "pre-line";
+                infoContainer.style.whiteSpace = "pre-line";
+                // Convert string "true" or "false" to boolean value
+                const connected = obj.connected === "true";
+                const voltageV = obj.voltage_mv / 1000; // Convert millivolts to volts
+                statusContainer.textContent = `Connected: ${connected}\nNumber of packets received: ${obj.num_packets}\nVoltage: ${voltageV} V`;
+                infoContainer.textContent = `ID code: ${obj.id_code}\nCPU1: ${obj.firmware_cpu1}\nCPU2: ${obj.firmware_cpu2}\nHardware version: ${obj.hardware_version}\nConfig id: ${obj.config_id}`;
+              }
+            } catch (error) {
+              console.error(
+                "Error parsing or handling characteristic change:",
+                error
+              );
+            }
           } else {
             console.log("Unknown event type:", event);
-            return;
-          }
-
-          try {
-            const obj = JSON.parse(newValueReceived);
-            statusContainer.style.whiteSpace = "pre-line";
-            infoContainer.style.whiteSpace = "pre-line";
-            // Convert string "true" or "false" to boolean value
-            const connected = obj.connected === "true";
-            const voltageV = obj.voltage_mv / 1000; // Convert millivolts to volts
-            statusContainer.textContent = `Connected: ${connected}\nNumber of packets received: ${obj.num_packets}\nVoltage: ${voltageV} V`;
-            infoContainer.textContent = `ID code: ${obj.id_code}\nCPU1: ${obj.firmware_cpu1}\nCPU2: ${obj.firmware_cpu2}\nHardware version: ${obj.hardware_version}\nConfig id: ${obj.config_id}`;
-          } catch (error) {
-            console.error(
-              "Error parsing or handling characteristic change:",
-              error
-            );
           }
         }
 
