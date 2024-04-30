@@ -53,17 +53,6 @@ body {
   align-items: center; /* Center align items vertically */
 }
 
-.writeValueButton {
-    background-color: #0f1c75;
-    border: none;
-    color: white;
-    padding: 8px 20px;
-    margin: 8px 0;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-
 .card,
 .info-card,
 .status-card {
@@ -78,6 +67,38 @@ body {
   font-size: 1rem;
 }
 
+.write-card {
+  background-color: white;
+  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 20px;
+}
+
+#writeValue {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#writeButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#writeButton:hover {
+  background-color: #45a049;
+}
+
 button {
   color: white;
   padding: 14px 20px;
@@ -89,11 +110,13 @@ button {
 
 .connectButton {
   background-color: #24af37;
+  cursor: pointer;
 }
 
 .disconnectButton {
   background-color: #d13a30;
 }
+
 
 .gray-label {
   color: #bebebe;

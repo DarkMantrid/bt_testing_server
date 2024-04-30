@@ -10,7 +10,7 @@
 
   <body>
     <div class="header">
-      <h2>Safety<br>Simplifier</h2>
+      <h2>Safety<br />Simplifier</h2>
       <div class="logo">
         <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
       </div>
@@ -43,6 +43,12 @@
           <h4>Status</h4>
           <p class="statusReading"><span id="statusContainer"></span></p>
           <p class="gray-label" id="timestamp"></p>
+        </td>
+        <td class="card write-card" style="display: none">
+          <h4>Write</h4>
+          <textarea id="writeValue" rows="4" cols="50"></textarea>
+          <button id="writeButton">Write</button>
+          <p class="writeReading"><span id="writeContainer"></span></p>
         </td>
       </tr>
     </table>
@@ -106,6 +112,9 @@
         const timestampContainer = document.getElementById("timestamp");
         const statusContainer = document.getElementById("statusContainer");
         const infoContainer = document.getElementById("infoContainer");
+        const writeValueTextarea = document.getElementById("writeValue");
+        const writeButton = document.getElementById("writeButton");
+        const writeCard = document.querySelector(".write-card");
 
         // Bluetooth Variables
         let bleServer;
@@ -121,11 +130,13 @@
         // Event Listeners
         connectButton.addEventListener("click", handleConnectButtonClick);
         disconnectButton.addEventListener("click", disconnectDevice);
+        writeButton.addEventListener("click", handleWriteButtonClick);
 
         // Bluetooth Constants
         const deviceName = "ESP32-C3";
         const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
         const readCharacteristic = "601d23b8-72c2-4965-90d1-2d8bab04f73a";
+        const writeCharacteristic = "960df2dd-b2c9-4722-9fad-b18f64a945d9";
 
         // Event Handlers
         function handleConnectButtonClick(event) {
@@ -133,6 +144,26 @@
             if (isWebBluetoothEnabled()) {
               connectToDevice(selectedDevice); // Pass selected device to connectToDevice
             }
+          }
+        }
+
+        function handleWriteButtonClick() {
+          const value = writeValueTextarea.value;
+          if (value) {
+            const data = new TextEncoder().encode(value);
+            writeCharacteristicFound
+              .writeValue(data)
+              .then(() => {
+                console.log("Wrote value to characteristic:", value);
+              })
+              .catch((error) => {
+                console.error(
+                  "Failed to write value to characteristic:",
+                  error
+                );
+              });
+          } else {
+            console.error("No value to write.");
           }
         }
 
@@ -152,6 +183,7 @@
                   clearInterval(intervalId);
                   hideInfoCard();
                   hideStatusCard();
+                  hideWriteCard();
                   bleServer = null;
                   readCharacteristicFound = null;
                   intervalId = null;
@@ -248,12 +280,29 @@
                     );
                     return characteristic.startNotifications();
                   }),
+                service
+                  .getCharacteristic(writeCharacteristic)
+                  .then((characteristic) => {
+                    console.log(
+                      "Write Characteristic discovered:",
+                      characteristic.uuid
+                    );
+                    if (characteristic.properties.write) {
+                      console.log("Write Characteristic has write permission");
+                      writeCharacteristicFound = characteristic;
+                    } else {
+                      console.error(
+                        "Write Characteristic does not have write permission"
+                      );
+                    }
+                  }),
               ]);
             })
             .then(() => {
               intervalId = setInterval(updateTimestamp, 1000);
               showInfoCard();
               showStatusCard();
+              showWriteCard();
               return readCharacteristicFound.readValue(); // Use readCharacteristicFound here
             })
             .catch((error) => {
@@ -283,6 +332,7 @@
           clearInterval(intervalId);
           hideInfoCard();
           hideStatusCard();
+          hideWriteCard();
           retryAttempts = 0;
           bleServer = null;
           readCharacteristicFound = null;
@@ -377,6 +427,18 @@
           const statusCard = document.querySelector(".status-card");
           if (statusCard) {
             statusCard.style.display = "none";
+          }
+        }
+
+        function showWriteCard() {
+          if (writeCard) {
+            writeCard.style.display = "block";
+          }
+        }
+
+        function hideWriteCard() {
+          if (writeCard) {
+            writeCard.style.display = "none";
           }
         }
 
