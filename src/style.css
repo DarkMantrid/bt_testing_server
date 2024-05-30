@@ -1,148 +1,24 @@
-/* style.css */
-
-/* Reset default margin and padding */
-html,
 body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  font-family: Arial, sans-serif;
 }
 
-/* Set up font */
-html {
-  font-family: "Roboto", "Italia", sans-serif;
-  text-align: center;
-}
-
-/* Header styles */
-.header {
-  background-color: #ffd700;
-  padding: 10px 20px; /* Adjust padding as needed */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-h2 {
-  font-size: 1.5rem;
-  color: #000000;
-  font-family: "Roboto", "Italia", sans-serif;
-  margin: 0;
-  text-align: center; /* Horizontally center align the h1 text */
-  flex: 1; /* Allow the h1 to take up available space */
-}
-
-
-/* Content styles */
-body {
-  font-family: "Roboto", sans-serif;
-  margin: 0;
-}
-
-.content {
-  padding: 50px;
-  padding-bottom: 10px;
-}
-
-.card-table {
-  max-width: 800px;
-  margin: 0 auto;
-  margin-bottom: 30px;
-  display: flex; /* Change display property to flex */
-  justify-content: center; /* Center align items horizontally */
-  align-items: center; /* Center align items vertically */
-}
-
-.card,
-.info-card,
-.status-card {
-  background-color: white;
-  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
-  border-radius: 15px;
-  padding: 15px;
-  margin: 20px;
-}
-
-.statusReading {
-  font-size: 1rem;
-}
-
-.write-card {
-  background-color: white;
-  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
-  border-radius: 15px;
-  padding: 15px;
-  margin: 20px;
-}
-
-#writeValue {
+table {
   width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
-#writeButton {
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
   background-color: #4CAF50;
   color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
 }
 
-#writeButton:hover {
-  background-color: #45a049;
+tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
-
-button {
-  color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.connectButton {
-  background-color: #24af37;
-  cursor: pointer;
-}
-
-.disconnectButton {
-  background-color: #d13a30;
-}
-
-
-.gray-label {
-  color: #bebebe;
-  font-size: 1rem;
-}
-
-/* For mobile devices, ensure content is centered */
-@media (max-width: 1076px) {
-  .card-table {
-    display: flex; /* Change display property to grid for row-based layout */
-    justify-content: space-around;
-    grid-template-columns: 1fr; /* Set a single column layout for smaller screens */
-  }
-
-  .card,
-  .info-card,
-  .status-card {
-    display: block;
-  }
-}
-
-/* For mobile devices, ensure content is centered */
-@media (max-width: 500px) {
-  .connectButton {
-    background-color: #24a437;
-  }
-}
-
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
