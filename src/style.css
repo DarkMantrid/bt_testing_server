@@ -43,8 +43,8 @@ th, td {
 }
 
 th {
-  background-color: #4CAF50;
-  color: white;
+  background-color: #FFD700;
+  color: black;
   display: block; /* New line */
 }
 
