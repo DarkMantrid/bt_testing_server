@@ -218,7 +218,7 @@ button {
     grid-column: 1;
     grid-row: auto;
     width: 90%; /* Adjust as needed */
-    padding: 15px; /* Adjust as needed */
+    padding: 35px; /* Adjust as needed */
     margin: 15px; /* Adjust as needed */
   }
 }
