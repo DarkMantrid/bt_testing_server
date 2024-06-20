@@ -1,107 +1,107 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Simplifier Manager Web tool</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="favicon.ico" />
-    <link rel="stylesheet" type="text/css" href="style.css" />
-    <meta charset="UTF-8" />
-  </head>
+<head>
+  <title>Simplifier Manager Web tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta charset="UTF-8" />
+</head>
 
-  <body>
-    <div class="header">
-      <h2>Safety<br />Simplifier</h2>
-      <div class="logo">
-        <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
-      </div>
+<body>
+  <div class="header">
+    <h2>Simplifier Manager</h2>
+    <div class="logo">
+      <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
     </div>
-    <table class="card-table">
-      <tr>
-        <td class="card">
-          <p>
-            <button id="connectBleButton" class="connectButton">
-              Connect to Device
-            </button>
-            <button id="disconnectBleButton" class="disconnectButton">
-              Disconnect Device
-            </button>
-          </p>
-          <p class="gray-label">
-            BLE state:
-            <strong
-              ><span id="bleState" style="color: #d13a30"
-                >Ready to connect</span
-              ></strong
-            >
-          </p>
-        </td>
-        <td class="card info-card" style="display: none">
-          <h3>General information</h3>
-          <p class="infoReading"><span id="infoContainer"></span></p>
-        </td>
-        <td class="card status-card" style="display: none">
-          <h4>Status</h4>
-          <p class="statusReading"><span id="statusContainer"></span></p>
-          <p class="gray-label" id="timestamp"></p>
-        </td>
-        <td class="card write-card" style="display: none">
-          <h4>Write</h4>
-          <textarea id="writeValue" rows="4" cols="50"></textarea>
-          <button id="writeButton">Write</button>
-          <p class="writeReading"><span id="writeContainer"></span></p>
-        </td>
-      </tr>
-    </table>
-    <div class="content">
-      <div class="chrome-alternative" style="display: none">
-        <p><b>Web Bluetooth is not supported in Mozilla Firefox. </b></p>
-        <p>
-          To use this service, please click this button to copy the URL:
-          <span id="chromeUrl" style="display: none"
-            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
-          ><button onclick="copyUrl()" class="copyButton">Copy</button>
-        </p>
-        <p>
-          Once copied open Google chrome and paste the URL into the search bar
-        </p>
-      </div>
-      <div class="safari-alternative" style="display: none">
-        <p><b>Web Bluetooth is not supported in Safari. </b></p>
-        <p>
-          To use this service, please click this button to copy the URL:
-          <span id="safariUrl" style="display: none"
-            >https://darkmantrid.github.io/SM-WebBLE-Server/</span
-          ><button onclick="copySafariUrl()" class="copyButton">Copy</button>
-        </p>
-        <p>
-          Once copied, open Google Chrome and paste the URL into the address bar
-        </p>
-      </div>
+  </div>
+  <div class="card-table">
+    <div class="card">
+      <p>
+        <button id="connectBleButton" class="connectButton">
+          Connect to Device
+        </button>
+        <button id="disconnectBleButton" class="disconnectButton">
+          Disconnect Device
+        </button>
+      </p>
+      <p class="gray-label">
+        BLE state:
+        <strong>
+          <span id="bleState" style="color: #d13a30">Ready to connect</span>
+        </strong>
+      </p>
+    </div>
+    <div class="card info-card">
+      <h3>General information</h3>
+      <p class="infoReading"><span id="infoContainer"></span></p>
+    </div>
+    <div class="card status-card">
+      <h4>Status</h4>
+      <p class="statusReading"><span id="statusContainer"></span></p>
+      <p class="gray-label" id="timestamp"></p>
+    </div>
+    <div class="card write-card" style="display: none">
+      <h4>Write</h4>
+      <textarea id="writeValue" rows="4" cols="50"></textarea>
+      <button id="writeButton">Write</button>
+      <p class="writeReading"><span id="writeContainer"></span></p>
     </div>
 
-    <script>
-      function copyUrl() {
-        var urlSpan = document.getElementById("chromeUrl");
-        var tempInput = document.createElement("input");
-        tempInput.value = urlSpan.textContent;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("URL copied to clipboard");
-      }
 
-      function copySafariUrl() {
-        var urlSpan = document.getElementById("safariUrl");
-        var tempInput = document.createElement("input");
-        tempInput.value = urlSpan.textContent;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("URL copied to clipboard");
-      }
-    </script>
+      <div class="card io-card">
+        <h3>I/O Card</h3>
+        <p>Will be replaced with a LED display</p>
+
+    </div>
+</body>
+  <div class="content">
+    <div class="chrome-alternative" style="display: none">
+      <p><b>Web Bluetooth is not supported in Mozilla Firefox. </b></p>
+      <p>
+        To use this service, please click this button to copy the URL:
+        <span id="chromeUrl" style="display: none"
+          >https://darkmantrid.github.io/SM-WebBLE-Server/</span
+        ><button onclick="copyUrl()" class="copyButton">Copy</button>
+      </p>
+      <p>
+        Once copied open Google chrome and paste the URL into the search bar
+      </p>
+    </div>
+    <div class="safari-alternative" style="display: none">
+      <p><b>Web Bluetooth is not supported in Safari. </b></p>
+      <p>
+        To use this service, please click this button to copy the URL:
+        <span id="safariUrl" style="display: none"
+          >https://darkmantrid.github.io/SM-WebBLE-Server/</span
+        ><button onclick="copySafariUrl()" class="copyButton">Copy</button>
+      </p>
+      <p>
+        Once copied, open Google Chrome and paste the URL into the address bar
+      </p>
+    </div>
+  </div>
+  <script>
+    function copyUrl() {
+      var urlSpan = document.getElementById("chromeUrl");
+      var tempInput = document.createElement("input");
+      tempInput.value = urlSpan.textContent;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+    }
+
+    function copySafariUrl() {
+      var urlSpan = document.getElementById("safariUrl");
+      var tempInput = document.createElement("input");
+      tempInput.value = urlSpan.textContent;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+    }
+  </script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -115,6 +115,7 @@
         const writeValueTextarea = document.getElementById("writeValue");
         const writeButton = document.getElementById("writeButton");
         const writeCard = document.querySelector(".write-card");
+        const ioCard = document.querySelector(".io-card");
 
         // Bluetooth Variables
         let bleServer;
@@ -184,6 +185,7 @@
                   hideInfoCard();
                   hideStatusCard();
                   hideWriteCard();
+                  hideIOCard();
                   bleServer = null;
                   readCharacteristicFound = null;
                   intervalId = null;
@@ -302,7 +304,7 @@
               intervalId = setInterval(updateTimestamp, 1000);
               showInfoCard();
               showStatusCard();
-              showWriteCard();
+              // showWriteCard();
               return readCharacteristicFound.readValue(); // Use readCharacteristicFound here
             })
             .catch((error) => {
@@ -333,6 +335,7 @@
           hideInfoCard();
           hideStatusCard();
           hideWriteCard();
+          hideIOCard();
           retryAttempts = 0;
           bleServer = null;
           readCharacteristicFound = null;
@@ -377,7 +380,7 @@
                 // Convert string "true" or "false" to boolean value
                 const connected = obj.connected === "true";
                 const voltageV = obj.voltage_mv / 1000; // Convert millivolts to volts
-                statusContainer.textContent = `Connected: ${connected}\nNumber of packets received: ${obj.num_packets}\nVoltage: ${voltageV} V`;
+                statusContainer.textContent = `Connected: ${connected}\nNumber of packets received: ${obj.num_packets}\nVoltage: ${voltageV} V\nTemperature:`;
                 infoContainer.textContent = `ID code: ${obj.id_code}\nCPU1: ${obj.firmware_cpu1}\nCPU2: ${obj.firmware_cpu2}\nHardware version: ${obj.hardware_version}\nConfig id: ${obj.config_id}`;
               }
             } catch (error) {
@@ -439,6 +442,20 @@
         function hideWriteCard() {
           if (writeCard) {
             writeCard.style.display = "none";
+          }
+        }
+
+        function showIOCard() {
+          const ioCard = document.querySelector(".io-card");
+          if (ioCard) {
+            ioCard.style.display = "block";
+          }
+        }
+
+        function hideIOCard() {
+          const ioCard = document.querySelector(".io-card");
+          if (ioCard) {
+            ioCard.style.display = "none";
           }
         }
 

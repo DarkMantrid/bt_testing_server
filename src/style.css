@@ -3,9 +3,9 @@
 /* Reset default margin and padding */
 html,
 body {
+  font-family: "Roboto", sans-serif;
   margin: 0;
   padding: 0;
-  height: 100%;
 }
 
 /* Set up font */
@@ -17,21 +17,32 @@ html {
 /* Header styles */
 .header {
   background-color: #ffd700;
-  padding: 10px 20px; /* Adjust padding as needed */
+  padding: 20px 20px; /* Adjust padding as needed */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: #000000;
   font-family: "Roboto", "Italia", sans-serif;
   margin: 0;
   text-align: center; /* Horizontally center align the h1 text */
   flex: 1; /* Allow the h1 to take up available space */
+  margin-left: 100px;
 }
 
+/* Logo styles */
+.logo {
+  margin-right: auto; /* Push the logo to the right */
+  text-align: right; /* Align the logo to the right */
+}
+
+.logo-img {
+  max-width: 100px; /* Adjust the maximum width as needed */
+  height: auto;
+}
 
 /* Content styles */
 body {
@@ -45,29 +56,73 @@ body {
 }
 
 .card-table {
-  max-width: 800px;
-  margin: 0 auto;
-  margin-bottom: 30px;
-  display: flex; /* Change display property to flex */
-  justify-content: center; /* Center align items horizontally */
-  align-items: center; /* Center align items vertically */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto; /* Creates two rows */
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
 }
 
-.card,
-.info-card,
-.status-card {
+.card-container {
+  grid-column: 2; /* Places the existing cards in the first column */
+  grid-row: 1; /* Places the existing cards in the first row */
+}
+
+.card {
+  grid-column: 2; /* Spans across both columns */
   background-color: white;
   box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
   border-radius: 15px;
   padding: 15px;
   margin: 20px;
+  width: 50%;
+  margin-left: 20%;
+}
+
+.info-card {
+  grid-column: 1;
+  grid-row: 2; /* Places the info card in the second row */
+  background-color: white;
+  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 20px;
+  width: 50%;
+  margin-left: 20%;
+}
+
+.status-card {
+  grid-column: 2;
+  grid-row: 2; /* Places the info card in the second row */
+  background-color: white;
+  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 20px;
+  width: 50%;
+  margin-left: 20%;
+}
+
+.io-card {
+  grid-column: 3; /* Places the I/O card in the second column */
+  grid-row: 2 / span 3; /* Places the I/O card in the second row and spans three rows */
+  background-color: white;
+  box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+  margin-bottom: 100px;
+  margin-left: 30%;
+  width: 200px;
+  height: 400px;
 }
 
 .statusReading {
   font-size: 1rem;
 }
 
-.write-card {
+/* .write-card {
   background-color: white;
   box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, 0.5);
   border-radius: 15px;
@@ -83,10 +138,10 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-}
+} */
 
-#writeButton {
-  background-color: #4CAF50;
+/* #writeButton {
+  background-color: #4caf50;
   color: white;
   padding: 14px 20px;
   margin: 8px 0;
@@ -97,7 +152,7 @@ body {
 
 #writeButton:hover {
   background-color: #45a049;
-}
+} */
 
 button {
   color: white;
@@ -117,7 +172,6 @@ button {
   background-color: #d13a30;
 }
 
-
 .gray-label {
   color: #bebebe;
   font-size: 1rem;
@@ -125,16 +179,45 @@ button {
 
 /* For mobile devices, ensure content is centered */
 @media (max-width: 1076px) {
-  .card-table {
-    display: flex; /* Change display property to grid for row-based layout */
-    justify-content: space-around;
-    grid-template-columns: 1fr; /* Set a single column layout for smaller screens */
-  }
-
   .card,
   .info-card,
   .status-card {
     display: block;
+  }
+}
+
+/* For mobile devices */
+@media (max-width: 768px) {
+  .card-table {
+    grid-template-columns: 1fr;
+  }
+
+  .card,
+  .info-card,
+  .status-card,
+  .io-card {
+    grid-column: 1;
+    grid-row: auto;
+    width: 90%; /* Adjust as needed */
+    padding: 15px; /* Adjust as needed */
+    margin: 15px; /* Adjust as needed */
+  }
+}
+
+/* For very small screens */
+@media (max-width: 500px) {
+  .card,
+  .info-card,
+  .status-card,
+  .io-card {
+    padding: 10px; /* Adjust as needed */
+    margin: 10px; /* Adjust as needed */
+  }
+}
+
+@media (max-width: 768px) {
+  .card-table {
+    grid-template-columns: 1fr;
   }
 }
 
