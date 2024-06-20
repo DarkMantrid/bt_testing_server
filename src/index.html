@@ -47,13 +47,13 @@
       <button id="writeButton">Write</button>
       <p class="writeReading"><span id="writeContainer"></span></p>
     </div>
-
-
       <div class="card io-card">
         <h3>I/O Card</h3>
         <p>Will be replaced with a LED display</p>
-
     </div>
+    <footer class="footer">
+      <p class="footer-text">We simplify safety</p>
+    </footer>
 </body>
   <div class="content">
     <div class="chrome-alternative" style="display: none">
@@ -380,7 +380,7 @@
                 // Convert string "true" or "false" to boolean value
                 const connected = obj.connected === "true";
                 const voltageV = obj.voltage_mv / 1000; // Convert millivolts to volts
-                statusContainer.textContent = `Connected: ${connected}\nNumber of packets received: ${obj.num_packets}\nVoltage: ${voltageV} V\nTemperature:`;
+                statusContainer.textContent = `Connected: ${connected}\nPackets received: ${obj.num_packets}\nVoltage: ${voltageV} V\nTemperature:`;
                 infoContainer.textContent = `ID code: ${obj.id_code}\nCPU1: ${obj.firmware_cpu1}\nCPU2: ${obj.firmware_cpu2}\nHardware version: ${obj.hardware_version}\nConfig id: ${obj.config_id}`;
               }
             } catch (error) {
