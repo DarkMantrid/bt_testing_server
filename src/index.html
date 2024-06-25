@@ -10,7 +10,7 @@
 
 <body>
   <div class="header">
-    <h2>Simplifier Manager</h2>
+    <h2>Simplifier Observer</h2>
     <!-- <div class="logo">
       <img src="sspn-logo-b.png" alt="Logo" class="logo-img" />
     </div> -->
@@ -41,13 +41,13 @@
       <p class="statusReading"><span id="statusContainer"></span></p>
       <p class="gray-label" id="timestamp"></p>
     </div>
+    
     <div class="card write-card" style="display: none">
       <h4>Write</h4>
       <textarea id="writeValue" rows="4" cols="50"></textarea>
       <button id="writeButton">Write</button>
       <p class="writeReading"><span id="writeContainer"></span></p>
     </div>
-    <img src="io_status.svg" alt="I/O Status" class="io-card">
     <footer class="footer">
       <p class="footer-text">We simplify safety</p>
     </footer>
@@ -302,6 +302,7 @@
               showInfoCard();
               showStatusCard();
               // showWriteCard();
+              showIOCard();
               return readCharacteristicFound.readValue(); // Use readCharacteristicFound here
             })
             .catch((error) => {
@@ -474,6 +475,90 @@
           return `${day}/${month}/${year} at ${hours}:${minutes}:${seconds}`;
         }
       });
+      
+      const onLoad = function() {
+        console.log('SVG load event fired');
+      
+        fetch('https://raw.githubusercontent.com/DarkMantrid/SM-WebBLE-Server/main/io_status.svg')
+          .then(response => response.text())
+          .then(svgText => {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+            console.log('SVG document:', svgDoc);
+      
+            // Create a container for the SVG
+            const svgContainer = document.createElement('div');
+            svgContainer.className = 'io-card'; // Assign the class to the container
+            // svgContainer.style.display = 'none'; // Hide the container initially
+            svgContainer.appendChild(svgDoc.documentElement); // Append the SVG to the container
+      
+            // Append the container to the HTML document's body
+            document.body.appendChild(svgContainer);
+      
+            const leds = [
+              { name: 'LED 1', id: 'path7' },
+              { name: 'LED 2', id: 'path7-0' },
+              { name: 'LED 3', id: 'path7-00' },
+              { name: 'LED 4', id: 'path7-0-8' },
+              { name: 'LED 5', id: 'path7-2' },
+              { name: 'LED 6', id: 'path7-0-88' },
+              { name: 'LED 7', id: 'path7-00-2' },
+              { name: 'LED 8', id: 'path7-0-8-6' },
+              { name: 'LED 9', id: 'path7-6' },
+              { name: 'LED 10', id: 'path7-0-6' },
+              { name: 'LED 11', id: 'path7-00-7' },
+              { name: 'LED 12', id: 'path7-0-8-0' },
+              { name: 'LED 13', id: 'path7-2-8' },
+              { name: 'LED 14', id: 'path7-0-88-8' },
+              { name: 'LED 15', id: 'path7-00-2-3' },
+              { name: 'LED 16', id: 'path7-0-8-6-9' },
+            ];
+      
+            let loadedLeds = 0;
+            let ledElements = [];
+            
+            leds.forEach(function(led) {
+              const ledElement = svgContainer.querySelector('#' + led.id);
+              if (ledElement) {
+                loadedLeds++;
+                ledElements.push(ledElement);
+                ledElement.style.fill = '#696969';
+                console.log(led.name + ' with id ' + led.id + ' loaded');
+              } else {
+                console.error(led.name + ' with id ' + led.id + ' not found');
+              }
+            });
+            
+            if (loadedLeds === 16) {
+              console.log('All 16 LEDs have been loaded');
+            }
+            
+            let isBlinking = false;
+            let blinkInterval;
+            
+            const button = document.querySelector('#layer3');
+            button.addEventListener('click', function() {
+              isBlinking = !isBlinking;
+              if (isBlinking) {
+                blinkInterval = setInterval(function() {
+                  ledElements.forEach(function(ledElement) {
+                    ledElement.style.fill = isGreen ? 'rgba(144, 238, 144, 1)' : 'rgba(255, 105, 97, 1)';
+                  });
+                  isGreen = !isGreen;
+                }, 500);
+              } else {
+                clearInterval(blinkInterval);
+                ledElements.forEach(function(ledElement) {
+                  ledElement.style.fill = '#696969';
+                });
+              }
+            });
+            
+            let isGreen = true;
+            })
+            .catch(error => console.error('Error:', error));
+            }; 
+            window.onload = onLoad;
     </script>
   </body>
 </html>
