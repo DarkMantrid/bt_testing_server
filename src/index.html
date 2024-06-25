@@ -48,6 +48,13 @@
       <button id="writeButton">Write</button>
       <p class="writeReading"><span id="writeContainer"></span></p>
     </div>
+    <div class="signal-strength">
+      <div id="signal-bar-1" class="signal-bar"></div>
+      <div id="signal-bar-2" class="signal-bar"></div>
+      <div id="signal-bar-3" class="signal-bar"></div>
+      <div id="signal-bar-4" class="signal-bar"></div>
+      <div id="signal-bar-5" class="signal-bar"></div>
+    </div>
     <footer class="footer">
       <p class="footer-text">We simplify safety</p>
     </footer>
@@ -378,7 +385,7 @@
                 // Convert string "true" or "false" to boolean value
                 const connected = obj.connected === "true";
                 const voltageV = obj.voltage_mv / 1000; // Convert millivolts to volts
-                statusContainer.textContent = `Connected: ${connected}\nPackets received: ${obj.num_packets}\nVoltage: ${voltageV} V\nTemperature:`;
+                statusContainer.textContent = `Connected: ${connected}\nPackets received: ${obj.num_packets}\nVoltage: ${voltageV} V\nTemperature: ${obj.temperature} °C`;
                 infoContainer.textContent = `ID code: ${obj.id_code}\nCPU1: ${obj.firmware_cpu1}\nCPU2: ${obj.firmware_cpu2}\nHardware version: ${obj.hardware_version}\nConfig id: ${obj.config_id}`;
               }
             } catch (error) {
@@ -536,29 +543,71 @@
             let isBlinking = false;
             let blinkInterval;
             
+            let mode = 0; // 0 = off, 1 = green/red blinking, 2 = orange/off blinking
+
             const button = document.querySelector('#layer3');
             button.addEventListener('click', function() {
-              isBlinking = !isBlinking;
-              if (isBlinking) {
-                blinkInterval = setInterval(function() {
+              clearInterval(blinkInterval); // Clear any existing interval
+            
+              mode = (mode + 1) % 3; // Cycle through the modes
+            
+              switch (mode) {
+                case 0: // Off
                   ledElements.forEach(function(ledElement) {
-                    ledElement.style.fill = isGreen ? 'rgba(144, 238, 144, 1)' : 'rgba(255, 105, 97, 1)';
+                    ledElement.style.fill = '#696969';
                   });
-                  isGreen = !isGreen;
-                }, 500);
-              } else {
-                clearInterval(blinkInterval);
-                ledElements.forEach(function(ledElement) {
-                  ledElement.style.fill = '#696969';
-                });
+                  break;
+                case 1: // Green/Red blinking
+                  blinkInterval = setInterval(function() {
+                    ledElements.forEach(function(ledElement) {
+                      ledElement.style.fill = isPrimaryColor ? 'rgba(144, 238, 144, 1)' : 'rgba(255, 105, 97, 1)';
+                    });
+                    isPrimaryColor = !isPrimaryColor;
+                  }, 500);
+                  break;
+                case 2: // Orange/Off blinking
+                  blinkInterval = setInterval(function() {
+                    ledElements.forEach(function(ledElement) {
+                      ledElement.style.fill = isPrimaryColor ? 'rgba(255, 170, 0, 1)' : '#696969';
+                    });
+                    isPrimaryColor = !isPrimaryColor;
+                  }, 500);
+                  break;
               }
             });
             
-            let isGreen = true;
+            let isPrimaryColor = true;
             })
             .catch(error => console.error('Error:', error));
             }; 
             window.onload = onLoad;
+
+            function updateSignalStrength(strength) {
+              let color;
+              if (strength <= 1) {
+                color = 'linear-gradient(to bottom, red, darkred)';
+              } else if (strength <= 3) {
+                color = 'linear-gradient(to bottom, orange, darkorange)';
+              } else {
+                color = 'linear-gradient(to bottom, green, darkgreen)';
+              }
+            
+              for (let i = 1; i <= 5; i++) {
+                const bar = document.querySelector(`#signal-bar-${i}`);
+                if (i <= strength) {
+                  bar.style.background = color;
+                } else {
+                  bar.style.background = 'linear-gradient(to bottom, #aaa, #888)'; // Here
+                }
+              }
+            }
+
+            // Generate a random signal strength every 2 seconds
+            setInterval(function() {
+              const simulatedStrength = Math.floor(Math.random() * 6); // Generates a random number between 0 and 5
+              updateSignalStrength(simulatedStrength);
+            }, 1000);
+
     </script>
   </body>
 </html>

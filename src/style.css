@@ -143,6 +143,30 @@ h2 {
   height: 40rem;
 }
 
+.signal-strength {
+  display: flex;
+  justify-content: space-between;
+  width: 120px; /* Adjust as needed */
+  height: 30px; /* Adjust as needed */
+  grid-column: 1;
+  grid-row: auto;
+  padding: 5px; /* Adds some space around the bars */
+}
+
+.signal-bar {
+  width: 15%; /* Adjust as needed */
+  height: 100%;
+  background: linear-gradient(to bottom, #ccc, grey); /* Adds a gradient background */
+  border: 1px solid #333; /* Adds a border */
+  border-radius: 10px;
+  margin-right: 4px; /* Adjust as needed */
+  transition: background 0.3s ease-in-out;
+}
+
+.signal-bar:last-child {
+  margin-right: 0;
+}
+
 .statusReading {
   font-size: 1rem;
 }
@@ -198,6 +222,32 @@ button {
     margin-top: -11%;
     margin-bottom: -5%;
   }
+
+  .signal-strength {
+    display: flex;
+    justify-content: space-between;
+    width: 70%; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    grid-column: 1;
+    grid-row: auto;
+    padding: 5px; /* Adds some space around the bars */
+    margin-top: 5%;
+    margin-left: 15%; /* Adjust as needed */
+  }
+
+  .signal-bar {
+    width: 15%; /* Adjust as needed */
+    height: 100%;
+    background: linear-gradient(to bottom, #ccc, grey); /* Adds a gradient background */
+    border: 1px solid #333; /* Adds a border */
+    border-radius: 10px;
+    margin-right: 4px; /* Adjust as needed */
+    transition: background 0.3s ease-in-out;
+  }
+
+  .signal-bar:last-child {
+    margin-right: 0;
+  }
 }
 
 @media (max-width: 768px) {
@@ -212,7 +262,7 @@ button {
     grid-row: auto;
     width: 70%; /* Adjust as needed */
     padding: 5%; /* Adjust as needed */
-    margin-left: 8%; /* Adjust as needed */
+    margin-left: 9%; /* Adjust as needed */
     margin-bottom: 0%;
   }
 
@@ -223,6 +273,33 @@ button {
     margin-left: 0%; /* Adjust as needed */
     margin-top: -17%;
   }
+
+  .signal-strength {
+    display: flex;
+    justify-content: space-between;
+    width: 70%; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    grid-column: 1;
+    grid-row: auto;
+    padding: 5px; /* Adds some space around the bars */
+    margin-top: 5%;
+    margin-left: 14%; /* Adjust as needed */
+  }
+
+  .signal-bar {
+    width: 15%; /* Adjust as needed */
+    height: 100%;
+    background: linear-gradient(to bottom, #ccc, grey); /* Adds a gradient background */
+    border: 1px solid #333; /* Adds a border */
+    border-radius: 10px;
+    margin-right: 4px; /* Adjust as needed */
+    transition: background 0.3s ease-in-out;
+  }
+
+  .signal-bar:last-child {
+    margin-right: 0;
+  }
+
   .footer-text {
     margin-right: 8%;
   }
@@ -252,6 +329,32 @@ button {
     margin-left: 1%; /* Adjust as needed */
     margin-top: -30%;
     margin-bottom: -5%;
+  }
+
+  .signal-strength {
+    display: flex;
+    justify-content: space-between;
+    width: 70%; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    grid-column: 1;
+    grid-row: auto;
+    padding: 5px; /* Adds some space around the bars */
+    margin-top: 5%;
+    margin-left: 15%; /* Adjust as needed */
+  }
+
+  .signal-bar {
+    width: 15%; /* Adjust as needed */
+    height: 100%;
+    background: linear-gradient(to bottom, #ccc, grey); /* Adds a gradient background */
+    border: 1px solid #333; /* Adds a border */
+    border-radius: 10px;
+    margin-right: 4px; /* Adjust as needed */
+    transition: background 0.3s ease-in-out;
+  }
+
+  .signal-bar:last-child {
+    margin-right: 0;
   }
 
   .footer-text {
@@ -289,6 +392,32 @@ button {
     margin-left: 1%; /* Adjust as needed */
     margin-top: -45%;
     margin-bottom: -65%;
+  }
+
+  .signal-strength {
+    display: flex;
+    justify-content: space-between;
+    width: 70%; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    grid-column: 1;
+    grid-row: auto;
+    padding: 5px; /* Adds some space around the bars */
+    margin-top: 5%;
+    margin-left: 15%; /* Adjust as needed */
+  }
+
+  .signal-bar {
+    width: 15%; /* Adjust as needed */
+    height: 100%;
+    background: linear-gradient(to bottom, #ccc, grey); /* Adds a gradient background */
+    border: 1px solid #333; /* Adds a border */
+    border-radius: 10px;
+    margin-right: 4px; /* Adjust as needed */
+    transition: background 0.3s ease-in-out;
+  }
+
+  .signal-bar:last-child {
+    margin-right: 0;
   }
 
   .footer-text {
