@@ -48,13 +48,6 @@
       <button id="writeButton">Write</button>
       <p class="writeReading"><span id="writeContainer"></span></p>
     </div>
-    <div class="signal-strength">
-      <div id="signal-bar-1" class="signal-bar"></div>
-      <div id="signal-bar-2" class="signal-bar"></div>
-      <div id="signal-bar-3" class="signal-bar"></div>
-      <div id="signal-bar-4" class="signal-bar"></div>
-      <div id="signal-bar-5" class="signal-bar"></div>
-    </div>
     <footer class="footer">
       <p class="footer-text">We simplify safety</p>
     </footer>
@@ -108,6 +101,7 @@
   </script>
 
     <script>
+
       document.addEventListener("DOMContentLoaded", function () {
         // DOM Elements
         const connectButton = document.getElementById("connectBleButton");
@@ -120,6 +114,7 @@
         const writeButton = document.getElementById("writeButton");
         const writeCard = document.querySelector(".write-card");
         const ioCard = document.querySelector(".io-card");
+        const signalStrengthContainer = document.querySelector(".signal-card");
 
         // Bluetooth Variables
         let bleServer;
@@ -137,6 +132,7 @@
         disconnectButton.addEventListener("click", disconnectDevice);
         writeButton.addEventListener("click", handleWriteButtonClick);
 
+        
         // Bluetooth Constants
         const deviceName = "ESP32-C3";
         const bleService = "08fed9e7-90be-44b5-b02c-91393f6e8988";
@@ -190,6 +186,7 @@
                   hideStatusCard();
                   hideWriteCard();
                   hideIOCard();
+                  hideSignalStrengthCard();
                   bleServer = null;
                   readCharacteristicFound = null;
                   intervalId = null;
@@ -310,6 +307,7 @@
               showStatusCard();
               // showWriteCard();
               showIOCard();
+              showSignalStrengthCard();
               return readCharacteristicFound.readValue(); // Use readCharacteristicFound here
             })
             .catch((error) => {
@@ -341,6 +339,7 @@
           hideStatusCard();
           hideWriteCard();
           hideIOCard();
+          hideSignalStrengthCard();
           retryAttempts = 0;
           bleServer = null;
           readCharacteristicFound = null;
@@ -464,6 +463,20 @@
           }
         }
 
+        function showSignalStrengthCard() {
+          const signalStrengthCard = document.querySelector(".signal-card");
+          if (signalStrengthCard) {
+            signalStrengthCard.style.display = "block";
+          }
+        }
+
+        function hideSignalStrengthCard() {
+          const signalStrengthCard = document.querySelector(".signal-card");
+          if (signalStrengthCard) {
+            signalStrengthCard.style.display = "none";
+          }
+        }
+
         // Update timestamp every second
         function updateTimestamp() {
           const timestamp = getDateTime();
@@ -483,7 +496,7 @@
         }
       });
       
-      const onLoad = function() {
+      const onDisplayLoad = function() {
         console.log('SVG load event fired');
       
         fetch('https://raw.githubusercontent.com/DarkMantrid/SM-WebBLE-Server/main/io_status.svg')
@@ -580,33 +593,82 @@
             })
             .catch(error => console.error('Error:', error));
             }; 
-            window.onload = onLoad;
+            window.onload = onDisplayLoad;
 
-            function updateSignalStrength(strength) {
-              let color;
-              if (strength <= 1) {
-                color = 'linear-gradient(to bottom, red, darkred)';
-              } else if (strength <= 3) {
-                color = 'linear-gradient(to bottom, orange, darkorange)';
-              } else {
-                color = 'linear-gradient(to bottom, green, darkgreen)';
-              }
+            window.addEventListener('load', onDisplayLoad);
+
+            const onSignalSvgLoad = function() {
+              fetch('https://raw.githubusercontent.com/DarkMantrid/SM-WebBLE-Server/main/radio_signal.svg')
+                .then(response => response.text())
+                .then(svgText => {
+                  const parser = new DOMParser();
+                  const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
             
-              for (let i = 1; i <= 5; i++) {
-                const bar = document.querySelector(`#signal-bar-${i}`);
-                if (i <= strength) {
-                  bar.style.background = color;
-                } else {
-                  bar.style.background = 'linear-gradient(to bottom, #aaa, #888)'; // Here
-                }
-              }
-            }
+                  // Create a container for the SVG
+                  const svgContainer = document.createElement('div');
+                  svgContainer.className = 'signal-card'; // Assign the class to the container
+                  svgContainer.appendChild(svgDoc.documentElement); // Append the SVG to the container
+            
+                  // Append the container to the HTML document's body
+                  document.body.appendChild(svgContainer);
+            
+                  const signals = [
+                    { name: 'Center', id: 'path1' },
+                    { name: 'L1', id: 'path2' },
+                    { name: 'R1', id: 'path2-9' },
+                    { name: 'L2', id: 'path2-6' },
+                    { name: 'R2', id: 'path2-6-7' },
+                    { name: 'L3', id: 'path2-6-9' },
+                    { name: 'R3', id: 'path2-6-9-1' },
+                  ];
+            
+                  const signalElements = [];
+                  signals.forEach(signal => {
+                    const element = svgContainer.querySelector('#' + signal.id);
+                    if (element) {
+                      signalElements.push(element);
+                    } else {
+                      console.error(`Element with id ${signal.id} not found`);
+                    }
+                  });
+            
+                  function updateSignalStrength(strength) {
+                    let color;
+                    if (strength === 0) {
+                      color = '#A9A9A9'; // Default color
+                    } else if (strength === 1) {
+                      color = '#FF0000'; // Red
+                    } else if (strength === 2) {
+                      color = '#FFA500'; // Orange
+                    } else {
+                      color = '#008000'; // Green
+                    }
+                  
+                    // Update the center path based on the signal strength
+                    signalElements[0].style.fill = strength > 0 ? color : '#A9A9A9'; // Default color
+                  
+                    // Update the pairs based on the signal strength
+                    for (let i = 1; i < signalElements.length; i += 2) {
+                      if (i < strength * 2) {
+                        signalElements[i].style.fill = color;
+                        signalElements[i + 1].style.fill = color;
+                      } else {
+                        signalElements[i].style.fill = '#A9A9A9'; // Default color
+                        signalElements[i + 1].style.fill = '#A9A9A9'; // Default color
+                      }
+                    }
+                  }
+                  
+                  // Generate a random signal strength every 2 seconds
+                  setInterval(function() {
+                    const simulatedStrength = Math.floor(Math.random() * ((signalElements.length - 1) / 2 + 1)); // Generates a random number between 0 and the number of signal pairs
+                    updateSignalStrength(simulatedStrength);
+                  }, 1000);
+                })
+                .catch(error => console.error('Error:', error));
+            };
+            window.onload = onSignalSvgLoad;
 
-            // Generate a random signal strength every 2 seconds
-            setInterval(function() {
-              const simulatedStrength = Math.floor(Math.random() * 6); // Generates a random number between 0 and 5
-              updateSignalStrength(simulatedStrength);
-            }, 1000);
 
     </script>
   </body>
