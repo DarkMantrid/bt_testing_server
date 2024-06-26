@@ -637,11 +637,11 @@
                     if (strength === 0) {
                       color = '#A9A9A9'; // Default color
                     } else if (strength === 1) {
-                      color = '#FF0000'; // Red
+                      color = '#FE0000'; 
                     } else if (strength === 2) {
-                      color = '#FFA500'; // Orange
+                      color = '#FF8000'; 
                     } else {
-                      color = '#008000'; // Green
+                      color = '#00CC00'; 
                     }
                   
                     // Update the center path based on the signal strength
@@ -659,11 +659,11 @@
                     }
                   }
                   
-                  // Generate a random signal strength every 2 seconds
+                  // Generate a random signal strength every x seconds
                   setInterval(function() {
                     const simulatedStrength = Math.floor(Math.random() * ((signalElements.length - 1) / 2 + 1)); // Generates a random number between 0 and the number of signal pairs
                     updateSignalStrength(simulatedStrength);
-                  }, 1000);
+                  }, 600);
                 })
                 .catch(error => console.error('Error:', error));
             };
